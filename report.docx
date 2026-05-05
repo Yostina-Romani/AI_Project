@@ -1,0 +1,135 @@
+
+ **Treasure Hunt Energy Optimization using BFS and Genetic Algorithm**
+
+---
+
+ **1. Introduction**
+
+This project focuses on solving a pathfinding problem in a grid-based environment. The main objective is to move from a starting point (S) to a treasure (T) while minimizing energy consumption. Two algorithms are implemented and compared: Breadth First Search (BFS) and Genetic Algorithm (GA).
+
+---
+
+ **2. Problem Definition**
+
+The environment is represented as a 2D grid (15×15) containing:
+
+* **S (Start)**: Starting position
+* **T (Treasure)**: Goal position
+* **. (Normal Cell)**: Energy cost = 1
+* **W (Swamp Cell)**: Energy cost = 5
+
+The goal is to find a path from S to T with minimum energy cost.
+
+---
+
+ **3. Environment Representation**
+
+The grid is randomly generated with swamp cells placed at random positions. This increases the complexity of the pathfinding problem and simulates real-world constraints.
+
+---
+
+ **4. Algorithms Used**
+
+ 4.1 Breadth First Search (BFS)
+
+BFS is used to find the shortest path in terms of number of steps.
+
+**Characteristics:**
+
+* Uses a queue (FIFO)
+* Explores level by level
+* Guarantees shortest path in steps
+* Ignores energy cost
+
+**Limitation:**
+
+* May pass through high-cost swamp cells
+
+---
+
+ 4.2 Genetic Algorithm (GA)
+
+GA is used as an optimization technique to find an energy-efficient path.
+
+**Representation:**
+Each solution (chromosome) is a sequence of moves:
+U, D, L, R
+
+**Main Steps:**
+
+* Initialize random population
+* Evaluate fitness of each chromosome
+* Selection (Tournament Selection)
+* Crossover (One-point crossover)
+* Mutation (Random changes)
+* Repeat for multiple generations
+
+---
+
+ **5. Fitness Function**
+
+The fitness function evaluates each solution based on:
+
+* Energy consumption
+* Distance to the treasure
+* Whether the treasure is reached
+
+**Fitness Formula:**
+
+* If treasure is reached:
+  Fitness = 1000 - energy
+
+* Otherwise:
+  Fitness = 1000 - (distance × 10) - energy
+
+---
+
+ **6. Results**
+
+ BFS Results:
+
+* Finds the shortest path in terms of steps
+* Does not consider energy cost
+* May pass through swamp cells
+
+GA Results:
+
+* Finds a valid path to the treasure
+* Reduces energy consumption
+* Avoids high-cost cells when possible
+
+---
+
+ **7. Visualization**
+
+The results are visualized using:
+
+Matplotlib
+
+The visualization includes:
+
+* Grid layout
+* BFS path (blue)
+* GA path (orange)
+* Start and treasure positions
+* Swamp cells
+
+---
+
+ **8. Comparison**
+
+| Feature        | BFS           | GA                  |
+| -------------- | ------------- | ------------------- |
+| Objective      | Shortest path | Optimal energy path |
+| Cost awareness | No            | Yes                 |
+| Performance    | Deterministic | Evolutionary        |
+| Result         | Fast path     | Efficient path      |
+
+---
+
+ **9. Conclusion**
+
+BFS is effective for finding the shortest path, while Genetic Algorithm is more suitable for optimization problems involving cost minimization. GA provides a more efficient solution in terms of energy consumption.
+
+---
+
