@@ -1,5 +1,8 @@
-from bfs import *
-from ga import *
+import matplotlib.pyplot as plt
+
+size=100
+chromosome_length=100
+import random   
 Rows=15
 Cols=15
 grid=[['.' for _ in range(Cols)] for _ in range(Rows)]
@@ -7,7 +10,6 @@ grid[0][0]='S'
 grid [14][14]='T'
 
 # swaps random توزيع
-import random
 count=0
 num_swaps=30
 while count<num_swaps:
@@ -19,15 +21,194 @@ while count<num_swaps:
     if grid[x][y]=='.':
         grid[x][y]='W'
     count +=1
-bfs_energy, bfs_path = bfs_search(grid)
-print(bfs_energy, bfs_path)
 
-population=generate_population()
+#bfs task
+########
+from collections import deque
+def bfs_search(grid):
+    rows=len(grid)
+    cols=len(grid[0])
+    start=(0,0)
+    totalCost=0
+    t=grid[14][14]
+    directions=[(0,1),(0,-1),(1,0),(-1,0)]
+    cell_visited=set()
+    
+    q=deque()
+    q.append((start[0],(start[1]),[start],totalCost))
+    
+    while q:
+        x,y,path,totalCost=q.popleft()
+        if grid[x][y]=='T':
+            return totalCost ,path
+        for dx,dy in directions:
+            nx=dx+x
+            ny=dy+y
+            if 0<=nx and nx<rows and 0<=ny and ny <cols :
+                if (nx,ny) not in cell_visited :
+                    cell_visited.add((nx,ny))
+                    if grid[nx][ny]=='.':
+                        cost=1
+                    if grid[nx][ny]=='T':
+                        cost=0
+                    if grid[nx][ny]=='S':
+                        cost=0
+                    
+                    if grid[nx][ny]=='W':
+                        cost=5
+                    q.append((nx,ny,path+[(nx,ny)],totalCost+cost))
+                
+    return None ,float('inf')
 
-for generation in range(300):
+
+########
+
+
+
+
+#GA Task
+#########
+
+
+directions=['U','D','L','R']
+
+#generate chromosome
+def generate_chromosome(chromosome_length):
+    chromosome=[]
+    for _ in range(chromosome_length):
+        move = random.choice(directions)
+        chromosome.append(move)
+
+    return chromosome
+
+#generate population
+def generate_population(size):
+    population=[]
+    for _ in range(size):
+        chromosome=generate_chromosome(chromosome_length)
+        population.append(chromosome)
+    return population
+
+
+#simulate for chromosome
+def simulate_chromosome(grid,chromosome):
+    x,y=0,0
+    total_cost=0
+    path=[(x,y)]
+    directions_map={
+        'U':(-1,0),
+        'D':(1,0),
+        'R':(0,1),
+        'L':(0,-1)
+    }
+    rows=len(grid)
+    cols=len(grid[0])
+    for move in chromosome:
+        dx,dy=directions_map[move]
+        nx=x+dx
+        ny=y+dy
+        if 0<=nx<rows and 0<=ny<cols:
+            x,y=nx,ny
+            path.append((x,y))
+            if grid[x][y]=='.':
+                total_cost+=1
+            elif grid[x][y]=='W':
+                total_cost+=5
+            if grid[x][y] == 'S':
+                total_cost+= 0
+            if grid[x][y]=='T':
+                return total_cost,True,path
+    return total_cost ,False,path
+
+
+#fitness function
+def fitness(grid, chromosome):
+    score=0
+    cost, success, path = simulate_chromosome(grid, chromosome)
+
+    x, y = path[-1]   # 👈 أهم تعديل
+
+    if success:
+        score+=500
+    distance=(abs(14-x)+abs(14-y))*10
+    score-=cost
+    score-=distance
+
+    return score
+    
+
+#evaluate population
+def evaluate_population(population,grid):
+    scores=[]
+    for chromosome in population:
+        score=fitness(grid,chromosome)
+        scores.append(score)
+    return scores
+
+
+#selection
+
+def selection(population,scores):
+    selected=[]
+    for _ in range(len(population)):
+        r1=random.randint(0,len(population)-1)
+        r2=random.randint(0,len(population)-1)
+        r3=random.randint(0,len(population)-1)
+        best_score=r1
+        if scores[r2]>scores[best_score]:
+            best_score=r2
+
+        elif scores[r3]>scores[best_score]:
+            best_score=r3
+        selected.append(population[best_score])
+    return selected
+
+#crossover
+def crossover(parent1,parent2):
+    size=len(parent1)
+    point=random.randint(0,size-1)
+    child=parent1[:point]+parent2[point:]
+    
+    return child
+
+
+
+
+
+#mutation
+def mutation(chromosome,mutation_rate=.03):
+    directions=['U','D','L','R']
+    for i in range(len(chromosome)):
+        if random.random()<mutation_rate:
+            chromosome[i]=random.choice(directions)
+    return chromosome
+
+
+
+#########
+
+#main code
+bfs_total_cost, bfs_path = bfs_search(grid)
+print(" total cost of bfs :",bfs_total_cost)
+
+global_best=None
+global_best_score = float("-inf")
+
+population=generate_population(size)
+
+best_scores=[]
+
+for generation in range(400):
     scores=evaluate_population(population,grid)
+    best_score=max(scores)
+    best_scores.append(best_score)
     selected=selection(population,scores)
     new_population=[]
+
+    if best_score>global_best_score:
+        global_best_score=best_score
+        global_best=population[scores.index(best_score)]
+    new_population.append(global_best)
     for i in range(0,len(selected)-1,2):
         parent1=selected[i]
         parent2=selected[i+1]
@@ -38,19 +219,64 @@ for generation in range(300):
         child2=mutation(child2)
         new_population.append(child1)
         new_population.append(child2)
-    population=new_population
 
-scores=evaluate_population(population,grid)
-best_index=scores.index(max(scores))
-best_chromosome=population[best_index]
-print(best_chromosome)
+    population=new_population
+ 
+
+
+best_chromosome=global_best
+#print(best_chromosome)
 energy, success, ga_path = simulate_chromosome(grid, best_chromosome)
-print("energy:",energy)
+print("total cost of ga:",energy)
 print("treasure:" ,success)
-print("final position:" ,ga_path)
+#print("final position:" ,ga_path)
+
+
 
 #visualization
+import numpy as np
 
-from visualization import draw_grid
+def draw_grid(grid, bfs_path=None, ga_path=None):
+
+    rows = len(grid)
+    cols = len(grid[0])
+    heatmap=np.zeros((rows,cols))
+    # رسم الأساس
+    for i in range(rows):
+        for j in range(cols):
+
+            if grid[i][j] == 'W':
+                heatmap[i][j]=5
+            
+
+            else:
+                heatmap[i][j]=1  
+    plt.figure(figsize=(6,6))
+    plt.imshow(heatmap,cmap='YlOrRd')
+
+    # رسم BFS path
+    if bfs_path:
+        bx = [p[1] for p in bfs_path]
+        by = [p[0] for p in bfs_path]
+        plt.plot(bx, by, color='blue', label='BFS Path')
+
+    # رسم GA path
+    if ga_path:
+        gx = [p[1] for p in ga_path]
+        gy = [p[0] for p in ga_path]
+        plt.plot(gx, gy, color='orange', label='GA Path')
+
+    plt.legend()
+    plt.title("Treasure Hunt - BFS vs GA")
+    plt.gca().invert_yaxis()  # عشان الشكل يبقى زي المصفوفة
+    plt.grid()
+    plt.show()
 
 draw_grid(grid, bfs_path, ga_path)
+
+#generations visualization
+plt.plot(best_scores)
+plt.xlabel("generation")
+plt.ylabel("best fitness")
+plt.title("genetic algorithm progress")
+plt.show()
