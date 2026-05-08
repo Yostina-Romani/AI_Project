@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-
+import time
 size=100
 chromosome_length=100
 import random   
@@ -29,39 +29,42 @@ def bfs_search(grid):
     rows=len(grid)
     cols=len(grid[0])
     start=(0,0)
-    totalCost=0
     t=grid[14][14]
     directions=[(0,1),(0,-1),(1,0),(-1,0)]
     cell_visited=set()
     
     q=deque()
-    q.append((start[0],(start[1]),[start],totalCost))
+    q.append((start[0],start[1],[(start[0],start[1])]))
+    cell_visited.add(start)
     
     while q:
-        x,y,path,totalCost=q.popleft()
+        x,y,path=q.popleft()
         if grid[x][y]=='T':
-            return totalCost ,path
+            return path,True
         for dx,dy in directions:
             nx=dx+x
             ny=dy+y
             if 0<=nx and nx<rows and 0<=ny and ny <cols :
                 if (nx,ny) not in cell_visited :
                     cell_visited.add((nx,ny))
-                    if grid[nx][ny]=='.':
-                        cost=1
-                    if grid[nx][ny]=='T':
-                        cost=0
-                    if grid[nx][ny]=='S':
-                        cost=0
-                    
-                    if grid[nx][ny]=='W':
-                        cost=5
-                    q.append((nx,ny,path+[(nx,ny)],totalCost+cost))
-                
-    return None ,float('inf')
+                   
+                    q.append((nx,ny,path+[(nx,ny)]))
 
+                
+    return [] ,False
 
 ########
+#calculate cost of bfs
+def bfs_cost(path):
+    cost =0;
+    for x,y in path:
+        if grid[x][y]=='.':
+            cost+=1;
+
+        if grid[x][y]=='W':
+            cost+=5
+    return cost
+
 
 
 
@@ -188,8 +191,19 @@ def mutation(chromosome,mutation_rate=.03):
 #########
 
 #main code
-bfs_total_cost, bfs_path = bfs_search(grid)
+bfs_time_start=time.time()
+bfs_path,success_bfs = bfs_search(grid)
+bfs_end_time=time.time();
+bfs_total_cost=bfs_cost(bfs_path)
+steps=len(bfs_path)-1
+bfs_time=bfs_end_time-bfs_time_start;
 print(" total cost of bfs :",bfs_total_cost)
+print(" total steps of bfs :",steps)
+print(" reached treasure :",success_bfs)
+print(" bfs time :",bfs_time)
+
+
+
 
 global_best=None
 global_best_score = float("-inf")
@@ -197,6 +211,7 @@ global_best_score = float("-inf")
 population=generate_population(size)
 
 best_scores=[]
+start_ga = time.time()
 
 for generation in range(400):
     scores=evaluate_population(population,grid)
@@ -223,12 +238,16 @@ for generation in range(400):
     population=new_population
  
 
+end_ga = time.time()
+ga_time=end_ga-start_ga
 
 best_chromosome=global_best
 #print(best_chromosome)
 energy, success, ga_path = simulate_chromosome(grid, best_chromosome)
 print("total cost of ga:",energy)
-print("treasure:" ,success)
+print("reached treasure:" ,success)
+print("GA time:" ,ga_time)
+
 #print("final position:" ,ga_path)
 
 
@@ -273,8 +292,62 @@ def draw_grid(grid, bfs_path=None, ga_path=None):
     plt.show()
 
 draw_grid(grid, bfs_path, ga_path)
+#######
 
-#generations visualization
+#draw bfs path
+
+def plot_bfs(grid, bfs_path):
+    rows = len(grid)
+    cols = len(grid[0])
+    heatmap = np.zeros((rows, cols))
+
+    for i in range(rows):
+        for j in range(cols):
+            heatmap[i][j] = 5 if grid[i][j] == 'W' else 1
+
+    plt.figure(figsize=(6,6))
+    plt.imshow(heatmap, cmap='YlOrRd')
+
+    bx = [p[1] for p in bfs_path]
+    by = [p[0] for p in bfs_path]
+    plt.plot(bx, by, color='blue', label='BFS Path')
+
+    plt.title("BFS Path Only")
+    plt.legend()
+    plt.gca().invert_yaxis()
+    plt.grid()
+    plt.show()
+plot_bfs(grid,bfs_path)
+
+#######
+
+#draw GA path
+def plot_ga(grid, ga_path):
+    rows = len(grid)
+    cols = len(grid[0])
+    heatmap = np.zeros((rows, cols))
+
+    for i in range(rows):
+        for j in range(cols):
+            heatmap[i][j] = 5 if grid[i][j] == 'W' else 1
+
+    plt.figure(figsize=(6,6))
+    plt.imshow(heatmap, cmap='YlOrRd')
+
+    gx = [p[1] for p in ga_path]
+    gy = [p[0] for p in ga_path]
+    plt.plot(gx, gy, color='orange', label='GA Path')
+
+    plt.title("GA Path Only")
+    plt.legend()
+    plt.gca().invert_yaxis()
+    plt.grid()
+    plt.show()
+plot_ga(grid,ga_path)
+
+
+
+#generations_fitnesss visualization
 plt.plot(best_scores)
 plt.xlabel("generation")
 plt.ylabel("best fitness")
