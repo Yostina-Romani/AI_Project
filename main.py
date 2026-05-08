@@ -129,7 +129,7 @@ def fitness(grid, chromosome):
     score=0
     cost, success, path = simulate_chromosome(grid, chromosome)
 
-    x, y = path[-1]   # 👈 أهم تعديل
+    x, y = path[-1]   
 
     if success:
         score+=500
