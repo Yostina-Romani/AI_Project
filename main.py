@@ -285,10 +285,14 @@ def draw_grid(grid, bfs_path=None, ga_path=None):
         gy = [p[0] for p in ga_path]
         plt.plot(gx, gy, color='orange', label='GA Path')
 
-    plt.legend()
+   
     plt.title("Treasure Hunt - BFS vs GA")
     plt.gca().invert_yaxis()  # عشان الشكل يبقى زي المصفوفة
+   
+    plt.scatter(0,0,color='black',s=100,label='Start')
+    plt.scatter(14,14,color='green',s=100,label='Treasure')
     plt.grid()
+    plt.legend()
     plt.show()
 
 draw_grid(grid, bfs_path, ga_path)
@@ -313,6 +317,8 @@ def plot_bfs(grid, bfs_path):
     plt.plot(bx, by, color='blue', label='BFS Path')
 
     plt.title("BFS Path Only")
+    plt.scatter(0,0,color='black',s=100,label='Start')
+    plt.scatter(14,14,color='green',s=100,label='Treasure')
     plt.legend()
     plt.gca().invert_yaxis()
     plt.grid()
@@ -339,6 +345,8 @@ def plot_ga(grid, ga_path):
     plt.plot(gx, gy, color='orange', label='GA Path')
 
     plt.title("GA Path Only")
+    plt.scatter(0,0,color='black',s=100,label='Start')
+    plt.scatter(14,14,color='green',s=100,label='Treasure')
     plt.legend()
     plt.gca().invert_yaxis()
     plt.grid()
