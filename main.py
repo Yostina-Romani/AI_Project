@@ -161,7 +161,7 @@ def selection(population,scores):
         if scores[r2]>scores[best_score]:
             best_score=r2
 
-        elif scores[r3]>scores[best_score]:
+        if scores[r3]>scores[best_score]:
             best_score=r3
         selected.append(population[best_score])
     return selected
